@@ -1,0 +1,14 @@
+              precision    recall  f1-score   support
+
+       brass       0.96      0.96      0.96       140
+       flute       0.93      0.90      0.91       140
+      guitar       0.88      0.95      0.91       140
+    keyboard       0.96      0.87      0.91       140
+      mallet       0.93      0.87      0.90       140
+        reed       0.83      0.90      0.86       140
+      string       0.92      0.94      0.93       140
+       vocal       0.99      1.00      1.00       140
+
+    accuracy                           0.92      1120
+   macro avg       0.93      0.92      0.92      1120
+weighted avg       0.93      0.92      0.92      1120
