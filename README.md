@@ -22,6 +22,7 @@ Scripts/                 # Audio preprocessing and data pipeline scripts
 Sample_Spectrograms/     # Visual inspection of extracted spectrograms
 Milestone2/              # Baseline CNN training and evaluation
 Milestone3/              # Model tuning and performance improvement
+Notebooks/               # Contains the initial notebook used for data pipeline
 README.md                # Project overview (this file)
 ```
 
