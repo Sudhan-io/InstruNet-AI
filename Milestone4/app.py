@@ -66,17 +66,19 @@ st.markdown(
 # ==================================================
 # LOAD MODELS
 # ==================================================
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 @st.cache_resource
 def load_instrument_model():
-    return tf.keras.models.load_model("instrunet_model_v3.keras")
+    model_path = os.path.join(BASE_DIR, "instrunet_model_v3.keras")
+    return tf.keras.models.load_model(model_path)
 
 @st.cache_resource
 def load_condition_model():
-    return tf.keras.models.load_model("instrunet_condition.keras")
-
-instrument_model = load_instrument_model()
-condition_model = load_condition_model()
-
+    model_path = os.path.join(BASE_DIR, "instrunet_condition.keras")
+    return tf.keras.models.load_model(model_path)
 # ==================================================
 # INSTRUMENT PREDICTION
 # ==================================================
