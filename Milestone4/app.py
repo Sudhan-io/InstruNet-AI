@@ -428,13 +428,17 @@ if st.session_state.analysis_done:
         r["condition"]
     )
 
+    features = harmonic_analysis(r["temp_path"])
+    condition = estimate_perceived_age(features)
+
     pdf_path = export_pdf_report(
         os.path.basename(r["temp_path"]),
         r["label"],
         r["confidence"],
         r["instrument_summary"],
         r["segment_preds"],
-        r["condition"]
+        features,
+        condition
     )
 
     with open(json_path, "rb") as f:
