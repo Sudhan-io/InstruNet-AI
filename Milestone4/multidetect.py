@@ -1,10 +1,12 @@
+import os
 import numpy as np
 import tensorflow as tf
-
 from preprocess import preprocess_audio
 from segment import segment_audio
 
-# MUST match training order
+# ==================================================
+# LABELS (MUST MATCH TRAINING ORDER EXACTLY)
+# ==================================================
 LABELS = [
     "brass",
     "flute",
@@ -16,16 +18,24 @@ LABELS = [
     "vocal"
 ]
 
-MODEL_PATH = "instrunet_model_v3.keras"
+# ==================================================
+# FIXED MODEL PATH (WORKS LOCALLY + STREAMLIT CLOUD)
+# ==================================================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH = os.path.join(BASE_DIR, "instrunet_model_v3.keras")
 
-
+# ==================================================
+# LOAD MODEL
+# ==================================================
 def load_model():
     return tf.keras.models.load_model(MODEL_PATH)
 
-
+# ==================================================
+# SEGMENT-BASED PREDICTION
+# ==================================================
 def predict_segments(audio_path, visibility_threshold=0.1):
     """
-    Segment-wise prediction with PROBABILITY aggregation (correct).
+    Segment-wise prediction with probability aggregation.
 
     Returns:
     - segment_predictions: list of dicts
@@ -36,29 +46,28 @@ def predict_segments(audio_path, visibility_threshold=0.1):
 
     segments, timestamps = segment_audio(audio_path)
 
-    # Initialize probability accumulator
     confidence_sum = {label: 0.0 for label in LABELS}
     segment_predictions = []
 
     for audio_chunk, (start, end) in zip(segments, timestamps):
+
         x = preprocess_audio_from_array(audio_chunk)
         preds = model.predict(x, verbose=0)[0]
 
-        # Store full segment prediction
         seg_result = {
-            "start": start,
-            "end": end,
+            "start": float(start),
+            "end": float(end),
             "predictions": {
                 LABELS[i]: float(preds[i]) for i in range(len(LABELS))
             }
         }
+
         segment_predictions.append(seg_result)
 
-        # ✅ CORRECT: accumulate FULL probability mass
+        # Accumulate full probability distribution
         for i, label in enumerate(LABELS):
             confidence_sum[label] += preds[i]
 
-    # Normalize by number of segments
     num_segments = len(segment_predictions)
     instrument_summary = {}
 
@@ -70,9 +79,9 @@ def predict_segments(audio_path, visibility_threshold=0.1):
     return segment_predictions, instrument_summary
 
 
-# ===============================
-# Helper: preprocess from array
-# ===============================
+# ==================================================
+# HELPER: PREPROCESS AUDIO FROM ARRAY
+# ==================================================
 def preprocess_audio_from_array(y, sr=22050):
     import librosa
 
@@ -84,7 +93,7 @@ def preprocess_audio_from_array(y, sr=22050):
 
     mel_db = librosa.power_to_db(mel, ref=np.max)
 
-    # Time normalization
+    # Time dimension normalization
     if mel_db.shape[1] < 128:
         mel_db = np.pad(
             mel_db,
@@ -93,7 +102,7 @@ def preprocess_audio_from_array(y, sr=22050):
     else:
         mel_db = mel_db[:, :128]
 
-    # Same normalization used in training
+    # Same normalization used during training
     mel_norm = (mel_db + 80.0) / 80.0
     mel_norm = mel_norm[..., np.newaxis]
     mel_norm = np.expand_dims(mel_norm, axis=0)
