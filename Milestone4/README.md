@@ -156,22 +156,33 @@ Time–frequency representation of the audio.
 
 ## 🧱 Instrument Condition Analysis
 
-The system estimates perceived acoustic age using harmonic fingerprint extraction.
+Instrument condition is predicted using a dedicated CNN model trained on augmented audio samples representing different degradation levels.
 
-### Extracted Features
+### Condition Classes
+
+- Healthy / Well-maintained  
+- Moderately Aged  
+- Old / Degraded  
+
+### Model-Based Classification
+
+The condition model operates on mel-spectrogram inputs and learns acoustic degradation patterns such as:
+
+- Increased noise components
+- Spectral irregularities
+- Harmonic instability
+
+### Harmonic Feature Extraction (Interpretability)
+
+For transparency and analysis, the system also extracts:
 
 - Harmonic-to-Noise Ratio (HNR)
 - Spectral Flatness
 - Decay Variance
 
-### Output Categories
+These metrics are included in the PDF report to provide technical insight into the predicted condition.
 
-- New / Well-maintained
-- Moderately Aged
-- Old / Degraded
-
-This classification reflects **perceived acoustic condition**, not physical manufacturing age.
-
+⚠️ Condition classification represents *perceived acoustic quality*, not the physical manufacturing age of the instrument.
 ---
 
 ## 📤 Report Export
