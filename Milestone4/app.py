@@ -21,7 +21,7 @@ import matplotlib.pyplot as plt
 
 from preprocess import preprocess_audio
 from multidetect import predict_segments
-
+from harmonic_analysis import harmonic_analysis, estimate_perceived_age
 # ==================================================
 # SESSION STATE
 # ==================================================
