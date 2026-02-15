@@ -79,6 +79,8 @@ def load_instrument_model():
 def load_condition_model():
     model_path = os.path.join(BASE_DIR, "instrunet_condition.keras")
     return tf.keras.models.load_model(model_path)
+instrument_model = load_instrument_model()
+condition_model = load_condition_model()
 # ==================================================
 # INSTRUMENT PREDICTION
 # ==================================================
