@@ -3,40 +3,52 @@
 ## 📌 Overview
 
 InstruNet AI is an end-to-end deep learning system for musical instrument analysis from audio signals.
-It identifies the primary instrument, estimates multiple instrument presence over time, analyzes
-instrument condition, and exports detailed analysis reports.
 
-This milestone focuses on deployment, interpretability, and reporting using a trained CNN model
-and an interactive Streamlit interface.
+It:
+- Identifies the primary instrument
+- Estimates multi-instrument presence over time
+- Analyzes perceived acoustic condition
+- Exports detailed JSON and PDF reports
+
+This milestone focuses on **deployment, interpretability, and reporting** using a trained CNN model and an interactive Streamlit interface.
 
 ---
 
 ## 🎯 Objectives
 
-- Deploy a trained CNN model for real-time inference
-- Maintain consistent preprocessing between training and inference
+- Deploy trained CNN model for real-time inference
+- Maintain preprocessing consistency between training and inference
 - Support arbitrary `.wav` audio inputs
 - Provide interpretable visual and textual outputs
 - Perform segment-based multi-instrument estimation
-- Analyze perceived acoustic age of instruments
-- Export analysis results as JSON and PDF
+- Analyze perceived acoustic age
+- Export structured reports (JSON + PDF)
 
 ---
 
 ## 🧠 System Architecture
 
+```
 Audio (.wav)
-→ Preprocessing (librosa)
-→ Mel-Spectrogram (128 × 128)
-→ CNN Model (instrunet_model_v3.keras)
-→ Global Instrument Prediction
-→ Segment-Based Analysis
-→ Visualization + Report Export
+    ↓
+Preprocessing (librosa)
+    ↓
+Mel-Spectrogram (128 × 128)
+    ↓
+CNN Model (instrunet_model_v3.keras)
+    ↓
+Global Instrument Prediction
+    ↓
+Segment-Based Analysis
+    ↓
+Visualization + Report Export
+```
 
 ---
 
 ## 📂 Folder Structure
 
+```
 Milestone4/
 ├── app.py
 ├── preprocess.py
@@ -44,44 +56,52 @@ Milestone4/
 ├── multidetect.py
 ├── harmonic_analysis.py
 ├── instrunet_model_v3.keras
+├── instrunet_condition.keras
 ├── test_audio/
 │   └── sample.wav
 └── README.md
+```
 
 ---
 
 ## 🔊 Audio Preprocessing
 
-The same preprocessing pipeline used during training is applied at inference.
+The same preprocessing pipeline used during training is applied during inference.
 
-Steps:
-- Sample rate: 22050 Hz
+### Steps
+
+- Sample rate: **22050 Hz**
 - Mono conversion
 - Fixed duration (trim or pad)
-- Mel-spectrogram extraction
-  - 128 mel bands
+- Mel-spectrogram extraction  
+  - 128 mel bands  
   - Log-scaled (dB)
 - Normalization:
-  X = (X + 80) / 80
 
-This ensures training–inference consistency.
+```
+X = (X + 80) / 80
+```
+
+This ensures strict training–inference consistency.
 
 ---
 
 ## 🧠 Model Details
 
 - Model type: Convolutional Neural Network (CNN)
-- Input shape: (128, 128, 1)
+- Input shape: `(128, 128, 1)`
 - Output classes (8):
 
-brass  
-flute  
-guitar  
-keyboard  
-mallet  
-reed  
-string  
-vocal  
+```
+brass
+flute
+guitar
+keyboard
+mallet
+reed
+string
+vocal
+```
 
 The model outputs a probability distribution across these classes.
 
@@ -93,97 +113,123 @@ To support real-world audio:
 
 - Audio is split into overlapping segments
 - Each segment is passed through the CNN
-- Segment predictions are aggregated to estimate:
-  - Instrument presence
-  - Temporal activity (timeline)
+- Segment predictions are aggregated
 
-The global CNN prediction is always authoritative.
-Segment-based detection is used only for analysis and visualization.
+The system estimates:
+- Instrument presence
+- Relative intensity
+- Temporal activity
+
+⚠️ The global CNN prediction remains authoritative.  
+Segment-based detection is used for interpretability and visualization.
 
 ---
 
 ## 📊 Visual Outputs
 
-The Streamlit application provides:
+The Streamlit interface provides:
 
-1. Final Prediction  
-   - Primary instrument  
-   - Confidence score  
+### 1️⃣ Final Prediction
+- Primary instrument
+- Confidence score
 
-2. Detected Instruments  
-   - Present / Not Present classification  
-   - Confidence progress bars  
+### 2️⃣ Detected Instruments
+- Present / Not Present classification
+- Confidence progress bars
 
-3. Instrument Intensity (Text-Based)
+### 3️⃣ Instrument Intensity (Text-Based)
 
 Example:
-Brass    : ███ (0.29)  
-Flute    : ███████ (0.67)
 
-4. Instrument Timeline  
-   - Waveform-based visualization of audio activity  
+```
+Brass  : ███ (0.29)
+Flute  : ███████ (0.67)
+```
 
-5. Mel-Spectrogram  
-   - Time–frequency representation of the input audio  
+### 4️⃣ Instrument Timeline
+Waveform-based temporal visualization.
+
+### 5️⃣ Mel-Spectrogram
+Time–frequency representation of the audio.
 
 ---
 
 ## 🧱 Instrument Condition Analysis
 
-The system estimates perceived acoustic age using harmonic analysis.
+The system estimates perceived acoustic age using harmonic fingerprint extraction.
 
-Extracted features:
+### Extracted Features
+
 - Harmonic-to-Noise Ratio (HNR)
 - Spectral Flatness
 - Decay Variance
 
-Output categories:
+### Output Categories
+
 - New / Well-maintained
 - Moderately Aged
 - Old / Degraded
 
-This represents perceptual acoustic condition, not physical age.
+This classification reflects **perceived acoustic condition**, not physical manufacturing age.
 
 ---
 
 ## 📤 Report Export
 
-JSON Report:
+### JSON Report
+Includes:
 - Audio filename
-- Final prediction and confidence
-- Detected instruments with scores
+- Final prediction
+- Confidence score
+- Detected instruments
 - Segment-wise predictions
 
-PDF Report:
+### Detailed PDF Report
+Includes:
 - Audio metadata
-- Final prediction summary
+- Prediction summary
 - Instrument presence table
-- Confidence values
+- Intensity visualization
+- Segment activity
+- Harmonic analysis
+- Technical explanation
+- Conclusion
 
-Reports are suitable for academic submission.
+Suitable for academic submission.
 
 ---
 
-## 🚀 Running the Application
+## 🚀 Running the Application Locally
 
-Install dependencies:
-pip install tensorflow streamlit librosa matplotlib fpdf numpy
+### Install dependencies
 
-Navigate to Milestone4:
+```
+pip install tensorflow streamlit librosa matplotlib fpdf numpy scipy
+```
+
+### Navigate to folder
+
+```
 cd Milestone4
+```
 
-Run the app:
+### Run the app
+
+```
 streamlit run app.py
+```
 
 Open in browser:
+```
 http://localhost:8501
+```
 
 ---
 
 ## ⚠️ Known Limitations
 
-- Model trained mainly on single-instrument audio
-- Multi-instrument detection is heuristic-based
+- Model trained primarily on single-instrument audio
+- Multi-instrument detection is probability-aggregation based
 - Condition analysis is perceptual, not physical
 - Accuracy depends on recording quality
 
@@ -191,19 +237,23 @@ http://localhost:8501
 
 ## 🔮 Future Enhancements
 
-- Segment smoothing and confidence calibration
-- Polyphonic training support
-- Improved condition estimation
-- Cloud deployment
+- Confidence calibration
+- Segment smoothing
+- Polyphonic training dataset
+- Improved degradation modeling
+- Extended cloud scaling
 
 ---
 
 ## 👨‍💻 Credits
 
-Developed as part of an academic project on
-CNN-Based Musical Instrument Recognition.
+Developed as part of an academic project on  
+**CNN-Based Musical Instrument Recognition**
 
 Technologies used:
 - TensorFlow
-- librosa
+- Librosa
 - Streamlit
+- NumPy
+- Matplotlib
+- FPDF
