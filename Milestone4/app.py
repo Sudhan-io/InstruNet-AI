@@ -192,35 +192,171 @@ def export_json_report(filename, label, confidence, instrument_summary, segment_
 # ==================================================
 # PDF EXPORT
 # ==================================================
-def export_pdf_report(filename, label, confidence, instrument_summary, segment_preds, condition):
+def export_pdf_report(filename, label, confidence,
+                      instrument_summary, segment_preds,
+                      features, condition):
+
     from datetime import datetime
+    from fpdf import FPDF
 
     pdf = FPDF()
-    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.set_auto_page_break(auto=True, margin=10)
     pdf.add_page()
 
-    pdf.set_font("Arial", "B", 16)
-    pdf.cell(0, 10, "InstruNet AI - Analysis Report", ln=True)
+    # ==========================================
+    # HEADER
+    # ==========================================
+    pdf.set_font("Arial", "B", 18)
+    pdf.cell(0, 12, "InstruNet AI - Detailed Instrument Analysis Report", ln=True)
 
+    pdf.ln(4)
     pdf.set_font("Arial", "", 11)
-    pdf.cell(0, 8, f"Generated: {datetime.now()}", ln=True)
+    pdf.cell(0, 8, f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", ln=True)
     pdf.cell(0, 8, f"Audio File: {filename}", ln=True)
 
-    pdf.ln(5)
+    pdf.ln(6)
 
-    pdf.set_font("Arial", "B", 13)
-    pdf.cell(0, 8, "Instrument Prediction", ln=True)
+    # ==========================================
+    # FINAL PREDICTION SECTION
+    # ==========================================
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(0, 10, "1. Primary Instrument Identification", ln=True)
+
+    pdf.set_font("Arial", "", 12)
+    pdf.cell(0, 8, f"Predicted Instrument: {label.capitalize()}", ln=True)
+    pdf.cell(0, 8, f"Confidence Score: {confidence:.3f}", ln=True)
+
+    pdf.ln(3)
+
+    pdf.multi_cell(
+        0, 8,
+        f"The deep convolutional neural network identifies the dominant "
+        f"instrument as {label.capitalize()} with a confidence of "
+        f"{confidence:.3f}. The model bases this prediction on learned "
+        f"mel-spectrogram patterns capturing spectral and temporal "
+        f"characteristics unique to each instrument class."
+    )
+
+    pdf.ln(6)
+
+    # ==========================================
+    # DETECTED INSTRUMENTS SUMMARY
+    # ==========================================
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(0, 10, "2. Detected Instruments Overview", ln=True)
+
+    pdf.set_font("Arial", "B", 11)
+    pdf.cell(50, 8, "Instrument", 1)
+    pdf.cell(40, 8, "Presence", 1)
+    pdf.cell(40, 8, "Confidence", 1, ln=True)
+
     pdf.set_font("Arial", "", 11)
-    pdf.cell(0, 8, f"Instrument: {label}", ln=True)
-    pdf.cell(0, 8, f"Confidence: {confidence:.3f}", ln=True)
+    for inst, score in instrument_summary.items():
+        presence = "Present" if score >= 0.15 else "Not Present"
+        pdf.cell(50, 8, inst.capitalize(), 1)
+        pdf.cell(40, 8, presence, 1)
+        pdf.cell(40, 8, f"{score:.3f}", 1, ln=True)
 
-    pdf.ln(5)
+    pdf.ln(6)
 
-    pdf.set_font("Arial", "B", 13)
-    pdf.cell(0, 8, "Condition Classification", ln=True)
+    # ==========================================
+    # INSTRUMENT INTENSITY VISUALIZATION
+    # ==========================================
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(0, 10, "3. Instrument Intensity Visualization", ln=True)
+
     pdf.set_font("Arial", "", 11)
-    pdf.cell(0, 8, f"Condition: {condition}", ln=True)
 
+    for inst, score in instrument_summary.items():
+        if score >= 0.15:
+            bar = "|" * max(1, int(score * 15))
+            pdf.cell(0, 8, f"{inst.capitalize():<10} : {bar} ({score:.2f})", ln=True)
+
+    pdf.ln(6)
+
+    # ==========================================
+    # SEGMENT-WISE ACTIVITY
+    # ==========================================
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(0, 10, "4. Segment-wise Instrument Activity", ln=True)
+
+    pdf.set_font("Arial", "", 11)
+
+    for seg in segment_preds:
+        start = seg["start"]
+        end = seg["end"]
+        dominant = max(seg["predictions"], key=seg["predictions"].get)
+        score = seg["predictions"][dominant]
+
+        if score >= 0.15:
+            pdf.cell(
+                0, 8,
+                f"{start:.2f}s - {end:.2f}s : {dominant.capitalize()} ({score:.2f})",
+                ln=True
+            )
+
+    pdf.ln(6)
+
+    # ==========================================
+    # CONDITION ANALYSIS
+    # ==========================================
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(0, 10, "5. Instrument Condition & Harmonic Analysis", ln=True)
+
+    pdf.set_font("Arial", "", 11)
+    pdf.cell(0, 8, f"Harmonic-to-Noise Ratio (HNR): {features['harmonic_to_noise_ratio']:.3f}", ln=True)
+    pdf.cell(0, 8, f"Spectral Flatness: {features['spectral_flatness']:.3f}", ln=True)
+    pdf.cell(0, 8, f"Decay Variance: {features['decay_variance']:.5f}", ln=True)
+
+    pdf.ln(3)
+
+    pdf.multi_cell(
+        0, 8,
+        f"Based on harmonic fingerprint analysis, the instrument is classified as: "
+        f"{condition}. Healthy instruments exhibit high harmonic-to-noise ratio "
+        f"and low spectral flatness, whereas aged or degraded instruments "
+        f"display increased spectral irregularities."
+    )
+
+    pdf.ln(6)
+
+    # ==========================================
+    # TECHNICAL SUMMARY
+    # ==========================================
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(0, 10, "6. Technical Summary", ln=True)
+
+    pdf.set_font("Arial", "", 11)
+    pdf.multi_cell(
+        0, 8,
+        "This analysis was performed using a convolutional neural network "
+        "trained on mel-spectrogram representations of musical audio. "
+        "Segment-wise aggregation ensures temporal consistency in "
+        "multi-instrument detection. Harmonic metrics were extracted "
+        "using digital signal processing techniques to assess perceived "
+        "acoustic condition."
+    )
+
+    pdf.ln(6)
+
+    # ==========================================
+    # CONCLUSION
+    # ==========================================
+    pdf.set_font("Arial", "B", 14)
+    pdf.cell(0, 10, "7. Conclusion", ln=True)
+
+    pdf.set_font("Arial", "", 11)
+    pdf.multi_cell(
+        0, 8,
+        "InstruNet AI successfully identifies dominant instruments, "
+        "evaluates segment-level activity, and estimates acoustic condition. "
+        "The integration of deep learning with harmonic analysis provides "
+        "a comprehensive framework for intelligent music analytics."
+    )
+
+    # ==========================================
+    # SAVE FILE
+    # ==========================================
     path = filename.replace(".wav", "_analysis.pdf")
     pdf.output(path)
 
